@@ -1,0 +1,46 @@
+import java.io.*;
+import java.net.ServerSocket;//server sockets:serves the client on request
+import java.net.Socket;     //client sockets: Requests services
+
+public class JServer {
+
+  public static void main (String [] args ) throws IOException {
+    Socket sock = null;
+    FileInputStream fileInputStream = null;
+    BufferedInputStream bufferedInputStream= null;
+    OutputStream outStream = null;
+    
+    ServerSocket listener = new ServerSocket(55555); //listening on port: 55555
+    try {
+        while (true) {
+        System.out.println("Waiting...");
+        try {
+          sock = listener.accept(); //Socket[addr=/127.0.0.1,port=49774,localport=55555]
+          System.out.println("Accepted connection : " + sock);
+          // send file
+          File myFile = new File ("File.txt");
+          byte[] fileInBinary  = new byte[(int)myFile.length()];//A byte array is an array of bytes.
+                                                                //You could use a byte array to store a collection of binary data.
+                                                                //For example: the contents of a file. The downside to this is that
+                                                                //the entire file contents must be loaded into memory.
+          fileInputStream = new FileInputStream(myFile); //open a stream to connect to the file.
+          bufferedInputStream = new BufferedInputStream(fileInputStream); //reads 8192 bytes and buffers them until needed.
+          bufferedInputStream.read(fileInBinary,0,fileInBinary.length); //read fileInBinary, offset=0,length=fileInBinary.length
+          outStream = sock.getOutputStream();              //create an output pipe(stream)
+          System.out.println("Sending " + myFile + "(" + fileInBinary.length + " bytes)");
+          outStream.write(fileInBinary,0,fileInBinary.length);
+          outStream.flush();
+          System.out.println("------------------");//end of request service
+        }
+        finally {
+          if (bufferedInputStream != null) bufferedInputStream.close();
+          if (outStream != null) outStream.close();
+          if (sock!=null) sock.close();
+        }
+      }
+    }
+    finally {
+      if (listener != null) listener.close();
+    }
+  }
+}

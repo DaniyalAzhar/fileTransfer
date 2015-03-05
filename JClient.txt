@@ -1,0 +1,43 @@
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+
+public class JClient {
+
+  public static void main (String [] args ) throws IOException {
+    int bytesRead;
+    int current = 0;
+    FileOutputStream fileOutputStream = null;
+    BufferedOutputStream bufferedOutputStream = null;
+    Socket sock = null;
+    try {
+      sock = new Socket("127.0.0.1", 55555);
+      System.out.println("Connecting...");
+
+      //receive file
+      byte[] fileInBinary  = new byte [50]; //recieve 50 bytes.
+      InputStream inStream = sock.getInputStream();
+      fileOutputStream = new FileOutputStream("FileFromServer.txt");
+      bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+      bytesRead = inStream.read(fileInBinary,0,fileInBinary.length);
+      current = bytesRead;
+
+      do{
+         bytesRead = inStream.read(fileInBinary, current,(fileInBinary.length-current));
+         if(bytesRead >= 0) current += bytesRead;
+      } while(bytesRead > -1);
+
+      bufferedOutputStream.write(fileInBinary, 0 , current);
+      bufferedOutputStream.flush();
+      System.out.println("File " + fileOutputStream + " downloaded (" + current + " bytes read)");
+    }
+    finally {
+      if (fileOutputStream != null) fileOutputStream.close();
+      if (bufferedOutputStream != null) bufferedOutputStream.close();
+      if (sock != null) sock.close();
+    }
+  }
+
+}
